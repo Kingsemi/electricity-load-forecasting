@@ -33,7 +33,9 @@ def forecast_future(df, model, feature_cols, horizon=24, temp_future=None):
             row["demand_rolling_std_24hr"] = last["demand"].std()
         # ============================
 
-        X = row[feature_cols]
+        X = row[["hour", "dayofweek", "month", "weekofyear", "quarter", "is_weekend",
+             "temperature", "demand_lag_168hr", "demand_rolling_mean_24hr", "demand_rolling_std_24hr"]
+        ]
         y_hat = model.predict(X)[0]
 
         new_time = row.index[0] + pd.Timedelta(hours=1)
@@ -129,5 +131,6 @@ if uploaded_file:
         # -----------------------
         st.subheader("Forecasted Demand")
         st.dataframe(future_df)
+
 
 
