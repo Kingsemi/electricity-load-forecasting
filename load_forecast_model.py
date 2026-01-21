@@ -19,8 +19,8 @@ def forecast_future(df, model, feature_cols, horizon=24, temp_future=None):
         if temp_future is not None:
             row["temperature"] = temp_future[i]
 
-        # Lag features
-        row["demand_lag_168hr"] = last["demand"].iloc[-168]
+        # Lag features safely
+        row["demand_lag_168hr"] = last["demand"].iloc[-168] if len(last["demand"]) >= 168 else last["demand"].mean()
         row["demand_rolling_mean_24hr"] = last["demand"].iloc[-24:].mean()
         row["demand_rolling_std_24hr"] = last["demand"].iloc[-24:].std()
 
