@@ -19,18 +19,10 @@ def forecast_future(df, model, feature_cols, horizon=24, temp_future=None):
         if temp_future is not None:
             row["temperature"] = temp_future[i]
 
-        # Safe lag features
-        if len(last["demand"]) >= 168:
-            row["demand_lag_168hr"] = last["demand"].iloc[-168]
-        else:
-            row["demand_lag_168hr"] = last["demand"].mean()
-
-        if len(last["demand"]) >= 24:
-            row["demand_rolling_mean_24hr"] = last["demand"].iloc[-24:].mean()
-            row["demand_rolling_std_24hr"] = last["demand"].iloc[-24:].std()
-        else:
-            row["demand_rolling_mean_24hr"] = last["demand"].mean()
-            row["demand_rolling_std_24hr"] = last["demand"].std()
+        # Lag features
+        row["demand_lag_168hr"] = last["demand"].iloc[-168]
+        row["demand_rolling_mean_24hr"] = last["demand"].iloc[-24:].mean()
+        row["demand_rolling_std_24hr"] = last["demand"].iloc[-24:].std()
 
         X = row[feature_cols]
         y_hat = model.predict(X)[0]
@@ -65,15 +57,7 @@ if uploaded_file:
         st.stop()
 
     df["date"] = pd.to_datetime(df["date"])
-    df["date"] = pd.to_datetime(df["date"])
-    df = df.sort_values("date")
-
-    # Remove duplicate timestamps
-    df = df.drop_duplicates(subset="date")
-
-    # Set index and enforce hourly
     df = df.set_index("date").asfreq("H")
-
 
     # Time features
     df["hour"] = df.index.hour
@@ -83,10 +67,10 @@ if uploaded_file:
     df["quarter"] = df.index.quarter
     df["is_weekend"] = (df.index.dayofweek >= 5).astype(int)
 
-    # Lag features safely
-    row["demand_lag_168hr"] = last["demand"].iloc[-168] if len(last["demand"]) >= 168 else last["demand"].mean()
-    row["demand_rolling_mean_24hr"] = last["demand"].iloc[-24:].mean()
-    row["demand_rolling_std_24hr"] = last["demand"].iloc[-24:].std()
+    # Lag & rolling
+    df["demand_lag_168hr"] = df["demand"].shift(168)
+    df["demand_rolling_mean_24hr"] = df["demand"].rolling(24).mean()
+    df["demand_rolling_std_24hr"] = df["demand"].rolling(24).std()
 
     df = df.dropna()
 
@@ -130,6 +114,3 @@ if uploaded_file:
         # -----------------------
         st.subheader("Forecasted Demand")
         st.dataframe(future_df)
-
-
-
