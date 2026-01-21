@@ -75,10 +75,10 @@ if uploaded_file:
     df["quarter"] = df.index.quarter
     df["is_weekend"] = (df.index.dayofweek >= 5).astype(int)
 
-    # Lag & rolling
-    df["demand_lag_168hr"] = df["demand"].shift(168)
-    df["demand_rolling_mean_24hr"] = df["demand"].rolling(24).mean()
-    df["demand_rolling_std_24hr"] = df["demand"].rolling(24).std()
+    # Lag features safely
+    row["demand_lag_168hr"] = last["demand"].iloc[-168] if len(last["demand"]) >= 168 else last["demand"].mean()
+    row["demand_rolling_mean_24hr"] = last["demand"].iloc[-24:].mean()
+    row["demand_rolling_std_24hr"] = last["demand"].iloc[-24:].std()
 
     df = df.dropna()
 
@@ -122,4 +122,5 @@ if uploaded_file:
         # -----------------------
         st.subheader("Forecasted Demand")
         st.dataframe(future_df)
+
 
