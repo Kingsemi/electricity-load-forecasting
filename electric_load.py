@@ -141,7 +141,8 @@ st.title("⚡ Electrical Load Forecasting (Production App)")
 st.sidebar.header("Settings")
 
 horizon = st.sidebar.slider("Forecast Horizon (hours)", 24, 168, 24)
-enable_retrain = st.sidebar.checkbox("Auto-retrain on uploaded data")
+enable_retrain = False
+
 
 uploaded_file = st.file_uploader("Upload CSV (must contain 'date' and 'demand')", type=["csv"])
 
@@ -167,13 +168,7 @@ if uploaded_file:
     st.line_chart(df_feat["demand"].tail(168))
 
     # ---------------- AUTO RETRAIN ----------------
-    if enable_retrain:
-        st.info("Retraining model...")
-        X = df_feat[FEATURE_COLS]
-        y = df_feat["demand"]
-        model.fit(X, y)
-        joblib.dump(model, MODEL_PATH)
-        st.success("Model retrained and saved.")
+
 
     # ---------------- MAPE ----------------
     holdout = int(len(df_feat)*0.8)
@@ -255,3 +250,4 @@ if uploaded_file:
 
 else:
     st.info("Upload CSV to begin.")
+
